@@ -1,8 +1,12 @@
 package events
 
-import "errors"
+import (
+	"errors"
+	"slices"
+)
 
 var ErrHandlerAlreadyRegistered = errors.New("handler already registered")
+var ErrorCleanDispatcher = errors.New("Error")
 
 type EventDispatcher struct {
 	handlers map[string][]EventHandlerInterface
@@ -26,4 +30,16 @@ func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterf
 	ed.handlers[eventName] = append(ed.handlers[eventName], handler)
 
 	return nil
+}
+
+func (ed *EventDispatcher) Clear() {
+	ed.handlers = make(map[string][]EventHandlerInterface)
+}
+
+func (ed *EventDispatcher) Has(eventName string, handler EventHandlerInterface) bool {
+	if _, ok := ed.handlers[eventName]; !ok {
+		return false
+	}
+
+	return slices.Contains(ed.handlers[eventName], handler)
 }
