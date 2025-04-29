@@ -40,12 +40,12 @@ func (s *AccountDBTestSuite) TestSave() {
 	s.Nil(err)
 }
 
-func (s *AccountDBTestSuite) TestGet() {
+func (s *AccountDBTestSuite) TestFindByID() {
 	account := entity.NewAccount(s.client)
 	account.Credit(100)
 	s.accountDB.Save(account)
 
-	accountDB, err := s.accountDB.Get(account.ID)
+	accountDB, err := s.accountDB.FindByID(account.ID)
 	s.Nil(err)
 	s.Equal(account.ID, accountDB.ID)
 	s.Equal(account.Client.ID, accountDB.Client.ID)
@@ -55,7 +55,7 @@ func (s *AccountDBTestSuite) TestGet() {
 }
 
 func (s *AccountDBTestSuite) TestGetWhenAccountDoesNotExist() {
-	account, err := s.accountDB.Get("invalid_id")
+	account, err := s.accountDB.FindByID("invalid_id")
 	s.Error(err)
 	s.Nil(account)
 }
