@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/guimartiins/eda-go/internal/entity"
+	"github.com/guimartiins/eda-go/internal/event"
+	"github.com/guimartiins/eda-go/pkg/events"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -45,6 +47,8 @@ func (suite *CreateTransactionUseCaseTestSuite) SetupTest() {
 	client1, _ := entity.NewClient("client1", "client1@email.com")
 	suite.account1 = entity.NewAccount(client1)
 	suite.account1.Credit(1000)
+	dispatcher := events.NewEventDispatcher()
+	event := event.NewTransactionCreatedEvent()
 
 	client2, _ := entity.NewClient("client2", "client2@email.com")
 	suite.account2 = entity.NewAccount(client2)
@@ -52,7 +56,7 @@ func (suite *CreateTransactionUseCaseTestSuite) SetupTest() {
 
 	suite.mockAccount = &AccountGatewayMock{}
 	suite.mockTransaction = &TransactionGatewayMock{}
-	suite.useCase = NewCreateTransactionUseCase(suite.mockTransaction, suite.mockAccount)
+	suite.useCase = NewCreateTransactionUseCase(suite.mockTransaction, suite.mockAccount, dispatcher, event)
 }
 
 func (suite *CreateTransactionUseCaseTestSuite) TestExecute_SuccessfulTransaction() {
