@@ -1,4 +1,4 @@
-module github.com/guimartiins/fcutils
+module github.com/guimartiins/eda-go
 
 go 1.24.2
 

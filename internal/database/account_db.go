@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 
-	"github.com/guimartiins/fcutils/internal/entity"
+	"github.com/guimartiins/eda-go/internal/entity"
 )
 
 type AccountDB struct {

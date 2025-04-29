@@ -3,8 +3,8 @@ package createclient
 import (
 	"time"
 
-	"github.com/guimartiins/fcutils/internal/entity"
-	"github.com/guimartiins/fcutils/internal/gateway"
+	"github.com/guimartiins/eda-go/internal/entity"
+	"github.com/guimartiins/eda-go/internal/gateway"
 )
 
 type CreateClientInputDTO struct {

@@ -1,8 +1,8 @@
 package createaccount
 
 import (
-	"github.com/guimartiins/fcutils/internal/entity"
-	"github.com/guimartiins/fcutils/internal/gateway"
+	"github.com/guimartiins/eda-go/internal/entity"
+	"github.com/guimartiins/eda-go/internal/gateway"
 )
 
 type CreateAccountInputDTO struct {

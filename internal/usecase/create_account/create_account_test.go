@@ -3,7 +3,7 @@ package createaccount
 import (
 	"testing"
 
-	"github.com/guimartiins/fcutils/internal/entity"
+	"github.com/guimartiins/eda-go/internal/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

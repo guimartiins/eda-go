@@ -1,6 +1,6 @@
 package gateway
 
-import "github.com/guimartiins/fcutils/internal/entity"
+import "github.com/guimartiins/eda-go/internal/entity"
 
 type AccountGateway interface {
 	Save(account *entity.Account) error
