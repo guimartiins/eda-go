@@ -7,9 +7,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/guimartiins/eda-go/internal/database"
 	"github.com/guimartiins/eda-go/internal/event"
-	createaccount "github.com/guimartiins/eda-go/internal/usecase/create_account"
-	createclient "github.com/guimartiins/eda-go/internal/usecase/create_client"
-	createtransaction "github.com/guimartiins/eda-go/internal/usecase/create_transaction"
+	create_account "github.com/guimartiins/eda-go/internal/usecase/create_account"
+	create_client "github.com/guimartiins/eda-go/internal/usecase/create_client"
+	create_transaction "github.com/guimartiins/eda-go/internal/usecase/create_transaction"
 	"github.com/guimartiins/eda-go/pkg/events"
 )
 
@@ -29,7 +29,7 @@ func main() {
 	accountDb := database.NewAccountDB(db)
 	transactionDb := database.NewTransactionDB(db)
 
-	createClientUseCase := createclient.NewCreateClientUseCase(clientDb)
-	createAccountUseCase := createaccount.NewCreateAccountUseCase(accountDb, clientDb)
-	createTransactionUseCase := createtransaction.NewCreateTransactionUseCase(transactionDb, accountDb, eventDispatcher, transactionCreatedEvent)
+	createClientUseCase := create_client.NewCreateClientUseCase(clientDb)
+	createAccountUseCase := create_account.NewCreateAccountUseCase(accountDb, clientDb)
+	createTransactionUseCase := create_transaction.NewCreateTransactionUseCase(transactionDb, accountDb, eventDispatcher, transactionCreatedEvent)
 }
