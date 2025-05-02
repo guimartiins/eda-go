@@ -13,10 +13,10 @@ type WebServer struct {
 	WebServerPort string
 }
 
-func NewWebServer(router chi.Router, handlers map[string]http.HandlerFunc, webServerPort string) *WebServer {
+func NewWebServer(webServerPort string) *WebServer {
 	return &WebServer{
-		Router:        router,
-		Handlers:      handlers,
+		Router:        chi.NewRouter(),
+		Handlers:      make(map[string]http.HandlerFunc),
 		WebServerPort: webServerPort,
 	}
 }
@@ -25,11 +25,19 @@ func (s *WebServer) AddHandler(path string, handler http.HandlerFunc) {
 	s.Handlers[path] = handler
 }
 
-func (s *WebServer) Start() error {
-	s.Router.Use((middleware.Logger))
+func (s *WebServer) Start() {
+	s.Router.Use(middleware.Logger)
 
 	for path, handler := range s.Handlers {
 		s.Router.Post(path, handler)
 	}
-	return http.ListenAndServe(s.WebServerPort, s.Router)
+
+	// Add startup message
+	println("Server is running on port", s.WebServerPort)
+
+	// Add ":" prefix to port and handle error
+	err := http.ListenAndServe(":"+s.WebServerPort, s.Router)
+	if err != nil {
+		panic(err)
+	}
 }

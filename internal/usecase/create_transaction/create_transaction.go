@@ -7,9 +7,9 @@ import (
 )
 
 type CreateTransactionInputDTO struct {
-	AccountIDFrom string
-	AccountIDTo   string
-	Amount        float64
+	AccountIDFrom string  `json:"account_id_from"`
+	AccountIDTo   string  `json:"account_id_to"`
+	Amount        float64 `json:"amount"`
 }
 
 type CreateTransactionOutputDTO struct {
@@ -32,28 +32,28 @@ func NewCreateTransactionUseCase(transactionGateway gateway.TransactionGateway, 
 	}
 }
 
-func (uc *CreateTransactionUseCase) Execute(input CreateTransactionInputDTO) (CreateTransactionOutputDTO, error) {
+func (uc *CreateTransactionUseCase) Execute(input CreateTransactionInputDTO) (*CreateTransactionOutputDTO, error) {
 	accountFrom, err := uc.AccountGateway.FindByID(input.AccountIDFrom)
 	if err != nil {
-		return CreateTransactionOutputDTO{}, err
+		return nil, err
 	}
 
 	accountTo, err := uc.AccountGateway.FindByID(input.AccountIDTo)
 	if err != nil {
-		return CreateTransactionOutputDTO{}, err
+		return nil, err
 	}
 
 	transaction, err := entity.NewTransaction(accountFrom, accountTo, input.Amount)
 	if err != nil {
-		return CreateTransactionOutputDTO{}, err
+		return nil, err
 	}
 
 	err = uc.TransactionGateway.Create(transaction)
 	if err != nil {
-		return CreateTransactionOutputDTO{}, err
+		return nil, err
 	}
 
-	output := CreateTransactionOutputDTO{
+	output := &CreateTransactionOutputDTO{
 		ID: transaction.ID,
 	}
 

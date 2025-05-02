@@ -93,7 +93,7 @@ func (suite *CreateTransactionUseCaseTestSuite) TestExecute_InsufficientFunds() 
 
 	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), entity.ErrInsufficientFunds, err)
-	assert.Empty(suite.T(), output.ID)
+	assert.Nil(suite.T(), output) // Mudamos esta linha de assert.Empty para assert.Nil
 }
 
 func TestCreateTransactionUseCaseSuite(t *testing.T) {

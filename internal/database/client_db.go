@@ -34,15 +34,18 @@ func (c *ClientDB) Get(id string) (*entity.Client, error) {
 }
 
 func (c *ClientDB) Save(client *entity.Client) error {
-	stmt, err := c.DB.Prepare("INSERT INTO clients (id, name, email, created_at) VALUES (?, ?, ?, ?)")
+	stmt, err := c.DB.Prepare("INSERT INTO clients (id, name, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
+		println("1 - Saving client to database:", err)
+
 		return err
 	}
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(client.ID, client.Name, client.Email, client.CreatedAt)
+	_, err = stmt.Exec(client.ID, client.Name, client.Email, client.CreatedAt, client.UpdatedAt)
 	if err != nil {
+		println("2 - Saving client to database:", err)
 		return err
 	}
 

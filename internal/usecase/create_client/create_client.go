@@ -37,6 +37,7 @@ func (u *CreateClientUseCase) Execute(input CreateClientInputDTO) (*CreateClient
 
 	err = u.ClientGateway.Save(client)
 	if err != nil {
+		println("Error saving client:", err)
 		return nil, err
 	}
 
