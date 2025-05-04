@@ -55,7 +55,8 @@ func (suite *CreateTransactionUseCaseTestSuite) SetupTest() {
 	suite.account1 = entity.NewAccount(client1)
 	suite.account1.Credit(1000)
 	dispatcher := events.NewEventDispatcher()
-	event := event.NewTransactionCreatedEvent()
+	eventTransaction := event.NewTransactionCreatedEvent()
+	eventBalance := event.NewBalanceUpdatedEvent()
 
 	client2, _ := entity.NewClient("client2", "client2@email.com")
 	suite.account2 = entity.NewAccount(client2)
@@ -67,7 +68,7 @@ func (suite *CreateTransactionUseCaseTestSuite) SetupTest() {
 
 	suite.mockUow = mockUow
 	suite.ctx = ctx
-	suite.useCase = NewCreateTransactionUseCase(mockUow, dispatcher, event)
+	suite.useCase = NewCreateTransactionUseCase(mockUow, dispatcher, eventTransaction, eventBalance)
 }
 
 func (suite *CreateTransactionUseCaseTestSuite) TestExecute_SuccessfulTransaction() {

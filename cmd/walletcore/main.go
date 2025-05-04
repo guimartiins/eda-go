@@ -22,11 +22,11 @@ import (
 
 func main() {
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		"root",      // username
-		"root",      // password
-		"mysql", // host (changed from "mysql" to "localhost")
-		"3306",      // port
-		"wallet"))   // database name
+		"root",    // username
+		"root",    // password
+		"mysql",   // host (changed from "mysql" to "localhost")
+		"3306",    // port
+		"wallet")) // database name
 
 	if err != nil {
 		panic(err)
@@ -49,6 +49,8 @@ func main() {
 	eventDispatcher := events.NewEventDispatcher()
 	transactionCreatedEvent := event.NewTransactionCreatedEvent()
 	eventDispatcher.Register("TransactionCreated", handler.NewTransactionCreatedKafkaHandler(kafkaProducer))
+	balanceUpdatedEvent := event.NewBalanceUpdatedEvent()
+	eventDispatcher.Register("BalanceUpdated", handler.NewUpdateBalanceKafkaHandler(kafkaProducer))
 
 	clientDb := database.NewClientDB(db)
 	accountDb := database.NewAccountDB(db)
@@ -67,7 +69,7 @@ func main() {
 
 	createClientUseCase := create_client.NewCreateClientUseCase(clientDb)
 	createAccountUseCase := create_account.NewCreateAccountUseCase(accountDb, clientDb)
-	createTransactionUseCase := create_transaction.NewCreateTransactionUseCase(uow, eventDispatcher, transactionCreatedEvent)
+	createTransactionUseCase := create_transaction.NewCreateTransactionUseCase(uow, eventDispatcher, transactionCreatedEvent, balanceUpdatedEvent)
 
 	webserver := webserver.NewWebServer("8080")
 
