@@ -5,15 +5,18 @@ import (
 	"database/sql"
 	"fmt"
 
+	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/guimartiins/eda-go/internal/database"
 	"github.com/guimartiins/eda-go/internal/event"
+	"github.com/guimartiins/eda-go/internal/event/handler"
 	create_account "github.com/guimartiins/eda-go/internal/usecase/create_account"
 	create_client "github.com/guimartiins/eda-go/internal/usecase/create_client"
 	create_transaction "github.com/guimartiins/eda-go/internal/usecase/create_transaction"
 	"github.com/guimartiins/eda-go/internal/web"
 	"github.com/guimartiins/eda-go/internal/web/webserver"
 	"github.com/guimartiins/eda-go/pkg/events"
+	"github.com/guimartiins/eda-go/pkg/kafka"
 	"github.com/guimartiins/eda-go/pkg/uow"
 )
 
@@ -21,7 +24,7 @@ func main() {
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		"root",      // username
 		"root",      // password
-		"localhost", // host (changed from "mysql" to "localhost")
+		"mysql", // host (changed from "mysql" to "localhost")
 		"3306",      // port
 		"wallet"))   // database name
 
@@ -36,9 +39,16 @@ func main() {
 	}
 	fmt.Println("Successfully connected to database")
 
+	configMap := ckafka.ConfigMap{
+		"bootstrap.servers": "kafka:29092",
+		"group.id":          "wallet",
+	}
+
+	kafkaProducer := kafka.NewKafkaProducer(&configMap)
+
 	eventDispatcher := events.NewEventDispatcher()
 	transactionCreatedEvent := event.NewTransactionCreatedEvent()
-	// eventDispatcher.Register("TransactionCreated", handler)
+	eventDispatcher.Register("TransactionCreated", handler.NewTransactionCreatedKafkaHandler(kafkaProducer))
 
 	clientDb := database.NewClientDB(db)
 	accountDb := database.NewAccountDB(db)
@@ -59,7 +69,7 @@ func main() {
 	createAccountUseCase := create_account.NewCreateAccountUseCase(accountDb, clientDb)
 	createTransactionUseCase := create_transaction.NewCreateTransactionUseCase(uow, eventDispatcher, transactionCreatedEvent)
 
-	webserver := webserver.NewWebServer("3000")
+	webserver := webserver.NewWebServer("8080")
 
 	clientHandler := web.NewWebClientHandler(*createClientUseCase)
 	accountHandler := web.NewWebAccountHandler(*createAccountUseCase)
@@ -69,5 +79,6 @@ func main() {
 	webserver.AddHandler("/accounts", accountHandler.CreateAccount)
 	webserver.AddHandler("/transactions", transactionHandler.CreateTransaction)
 
+	fmt.Println("Starting web server")
 	webserver.Start()
 }

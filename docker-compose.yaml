@@ -1,6 +1,7 @@
 services:
   goapp:
     container_name: goapp
+    platform: linux/amd64
     build: .
     volumes:
       - .:/app
