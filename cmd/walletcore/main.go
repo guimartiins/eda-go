@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/guimartiins/eda-go/internal/web"
 	"github.com/guimartiins/eda-go/internal/web/webserver"
 	"github.com/guimartiins/eda-go/pkg/events"
+	"github.com/guimartiins/eda-go/pkg/uow"
 )
 
 func main() {
@@ -40,11 +42,22 @@ func main() {
 
 	clientDb := database.NewClientDB(db)
 	accountDb := database.NewAccountDB(db)
-	transactionDb := database.NewTransactionDB(db)
+
+	ctx := context.Background()
+	uow := uow.NewUow(ctx, db)
+
+	uow.Register("AccountDB", func(tx *sql.Tx) interface{} {
+		return database.NewAccountDB(db)
+	},
+	)
+	uow.Register("TransactionDB", func(tx *sql.Tx) interface{} {
+		return database.NewTransactionDB(db)
+	},
+	)
 
 	createClientUseCase := create_client.NewCreateClientUseCase(clientDb)
 	createAccountUseCase := create_account.NewCreateAccountUseCase(accountDb, clientDb)
-	createTransactionUseCase := create_transaction.NewCreateTransactionUseCase(transactionDb, accountDb, eventDispatcher, transactionCreatedEvent)
+	createTransactionUseCase := create_transaction.NewCreateTransactionUseCase(uow, eventDispatcher, transactionCreatedEvent)
 
 	webserver := webserver.NewWebServer("3000")
 

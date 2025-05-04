@@ -1,10 +1,12 @@
 package create_transaction
 
 import (
+	"context"
 	"testing"
 
 	"github.com/guimartiins/eda-go/internal/entity"
 	"github.com/guimartiins/eda-go/internal/event"
+	"github.com/guimartiins/eda-go/internal/usecase/mocks"
 	"github.com/guimartiins/eda-go/pkg/events"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -41,11 +43,11 @@ func (m *AccountGatewayMock) UpdateBalance(account *entity.Account) error {
 
 type CreateTransactionUseCaseTestSuite struct {
 	suite.Suite
-	mockAccount     *AccountGatewayMock
-	mockTransaction *TransactionGatewayMock
-	useCase         *CreateTransactionUseCase
-	account1        *entity.Account
-	account2        *entity.Account
+	ctx      context.Context
+	mockUow  *mocks.UowMock
+	useCase  *CreateTransactionUseCase
+	account1 *entity.Account
+	account2 *entity.Account
 }
 
 func (suite *CreateTransactionUseCaseTestSuite) SetupTest() {
@@ -59,46 +61,45 @@ func (suite *CreateTransactionUseCaseTestSuite) SetupTest() {
 	suite.account2 = entity.NewAccount(client2)
 	suite.account2.Credit(1000)
 
-	suite.mockAccount = &AccountGatewayMock{}
-	suite.mockTransaction = &TransactionGatewayMock{}
-	suite.useCase = NewCreateTransactionUseCase(suite.mockTransaction, suite.mockAccount, dispatcher, event)
+	mockUow := &mocks.UowMock{}
+
+	ctx := context.Background()
+
+	suite.mockUow = mockUow
+	suite.ctx = ctx
+	suite.useCase = NewCreateTransactionUseCase(mockUow, dispatcher, event)
 }
 
 func (suite *CreateTransactionUseCaseTestSuite) TestExecute_SuccessfulTransaction() {
-	suite.mockAccount.On("FindByID", suite.account1.ID).Return(suite.account1, nil)
-	suite.mockAccount.On("FindByID", suite.account2.ID).Return(suite.account2, nil)
-	suite.mockTransaction.On("Create", mock.Anything).Return(nil)
-
 	inputDto := CreateTransactionInputDTO{
 		AccountIDFrom: suite.account1.ID,
 		AccountIDTo:   suite.account2.ID,
 		Amount:        100,
 	}
 
-	output, err := suite.useCase.Execute(inputDto)
+	suite.mockUow.On("Do", mock.Anything, mock.Anything).Return(nil)
+
+	output, err := suite.useCase.Execute(suite.ctx, inputDto)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), output)
-	assert.NotEmpty(suite.T(), output.ID)
-	suite.mockAccount.AssertExpectations(suite.T())
-	suite.mockTransaction.AssertExpectations(suite.T())
+	suite.mockUow.AssertExpectations(suite.T())
+	suite.mockUow.AssertCalled(suite.T(), "Do", mock.Anything, mock.Anything)
 }
 
 func (suite *CreateTransactionUseCaseTestSuite) TestExecute_InsufficientFunds() {
-	suite.mockAccount.On("FindByID", suite.account1.ID).Return(suite.account1, nil)
-	suite.mockAccount.On("FindByID", suite.account2.ID).Return(suite.account2, nil)
-
 	inputDto := CreateTransactionInputDTO{
 		AccountIDFrom: suite.account1.ID,
 		AccountIDTo:   suite.account2.ID,
 		Amount:        2000,
 	}
+	suite.mockUow.On("Do", mock.Anything, mock.Anything).Return(entity.ErrInsufficientFunds)
 
-	output, err := suite.useCase.Execute(inputDto)
+	output, err := suite.useCase.Execute(suite.ctx, inputDto)
 
 	assert.NotNil(suite.T(), err)
-	assert.Equal(suite.T(), entity.ErrInsufficientFunds, err)
-	assert.Nil(suite.T(), output) // Mudamos esta linha de assert.Empty para assert.Nil
+	assert.Nil(suite.T(), output)
+	assert.Equal(suite.T(), "insufficient funds", err.Error())
 }
 
 func TestCreateTransactionUseCaseSuite(t *testing.T) {
